@@ -1,0 +1,36 @@
+schema: spec-driven
+
+context: |
+  Project: Legacyver — AI-powered CLI tool to auto-generate technical documentation from legacy/undocumented codebases.
+  Published as: npm global package (`npm install -g legacyver`)
+  Runtime: Node.js >= 18.0.0
+  Language: JavaScript (CommonJS)
+  CLI Framework: commander
+  AST Parsing: web-tree-sitter (Tree-sitter bindings — supports JS, TS, Python, Java, Go, PHP, and 40+ languages)
+  LLM Providers: OpenRouter (primary — unified API gateway to 200+ models including Claude, GPT-4o, Gemini, Llama, Mistral, etc.), Ollama (local/offline fallback)
+  Core Architecture: 4-stage pipeline — Crawler → AST Parser → LLM Engine → Renderer
+  Output Formats: Markdown (default), HTML, JSON
+  Key Design Principle: LLM is a WRITER not an ANALYST. AST extracts hard facts; LLM only explains them in plain English.
+  Anti-hallucination Strategy: LLM never sees raw code without pre-extracted AST facts (function names, params, imports, call graph)
+  Incremental Analysis: SHA-256 file hash cache in .legacyver-cache/ — only re-analyzes changed files
+  Rate Limiting: p-limit concurrency control + p-retry exponential backoff
+  PHP/Laravel Support: tree-sitter-php grammar; Laravel-aware parser detects Routes, Controllers, Models (Eloquent), Middleware, Service Providers, Blade templates
+  Testing: Vitest, fixture projects in test/fixtures/
+
+rules:
+  proposal:
+    - Focus on the WHY — what developer pain does this solve
+    - Be specific about the npm publishing experience
+    - Include CI/CD integration angle
+  specs:
+    - Use Given/When/Then format for all scenarios
+    - Every SHALL statement must be testable
+    - Cover error states, not just happy path
+  design:
+    - Include data flow diagrams using ASCII art
+    - Specify the exact JSON schema for the Project Knowledge Graph (PKG)
+    - Document the LLM prompt contract explicitly
+  tasks:
+    - Group by pipeline stage (crawler, parser, llm, renderer)
+    - Each task must be independently implementable and testable
+    - Include npm publish steps at the end

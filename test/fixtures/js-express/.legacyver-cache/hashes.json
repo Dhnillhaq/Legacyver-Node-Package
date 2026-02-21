@@ -1,0 +1,22 @@
+{
+  "src/app.js": {
+    "hash": "sha256:de7b0addd73a45d52a80571b63f4890053611590e13210a488a21c862316e8fe",
+    "docFile": "D:\\Important Document\\Alhamdulillah Magang\\Comeback Lomba\\Legacyver Node Package\\test-output\\src\\app.md",
+    "generatedAt": "2026-02-21T05:09:40.238Z"
+  },
+  "src/middleware/auth.js": {
+    "hash": "sha256:61f10417fb90700e53d141384f7e1e6b24f18407e19efa5202c04e221cd91df1",
+    "docFile": "D:\\Important Document\\Alhamdulillah Magang\\Comeback Lomba\\Legacyver Node Package\\test-output\\src\\middleware\\auth.md",
+    "generatedAt": "2026-02-21T05:09:40.238Z"
+  },
+  "src/routes/users.js": {
+    "hash": "sha256:bbf3930ac12d9d348ac49ee0f886e6653414537f4cd09664fd587ec51a2aa998",
+    "docFile": "D:\\Important Document\\Alhamdulillah Magang\\Comeback Lomba\\Legacyver Node Package\\test-output\\src\\routes\\users.md",
+    "generatedAt": "2026-02-21T05:09:40.238Z"
+  },
+  "src/utils/db.js": {
+    "hash": "sha256:01ad0e7378e5c5c65c8185e98306398441a23623efb572a19bad20dc2c98289c",
+    "docFile": "D:\\Important Document\\Alhamdulillah Magang\\Comeback Lomba\\Legacyver Node Package\\test-output\\src\\utils\\db.md",
+    "generatedAt": "2026-02-21T05:09:40.238Z"
+  }
+}

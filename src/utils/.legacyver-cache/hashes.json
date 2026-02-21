@@ -1,0 +1,17 @@
+{
+  "config.js": {
+    "hash": "sha256:ae1dca7bbd1e2d88cfc1f05e5f4fad4956a3fc30e484248293a0bdcc84b70c50",
+    "docFile": "D:\\Important Document\\Alhamdulillah Magang\\Comeback Lomba\\Legacyver Node Package\\legacyver-docs\\config.md",
+    "generatedAt": "2026-02-21T09:08:34.154Z"
+  },
+  "errors.js": {
+    "hash": "sha256:967b66f1a37f92b56541078ee882cfa77faa3af5648dbca77fc52f028d709228",
+    "docFile": "D:\\Important Document\\Alhamdulillah Magang\\Comeback Lomba\\Legacyver Node Package\\legacyver-docs\\errors.md",
+    "generatedAt": "2026-02-21T09:08:34.154Z"
+  },
+  "logger.js": {
+    "hash": "sha256:948f1cb5b66d722f72beccdf23a5889b813b8551fc5328aa358c05312714a296",
+    "docFile": "D:\\Important Document\\Alhamdulillah Magang\\Comeback Lomba\\Legacyver Node Package\\legacyver-docs\\logger.md",
+    "generatedAt": "2026-02-21T09:08:34.154Z"
+  }
+}

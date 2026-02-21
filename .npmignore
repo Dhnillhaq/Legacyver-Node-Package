@@ -1,0 +1,19 @@
+# Test, dev tools, and cache
+test/
+.legacyver-cache/
+openspec/
+*.test.js
+*.test.ts
+.eslintrc*
+.eslintignore
+vitest.config*
+
+# Editor and OS files
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Local config overrides
+.legacyverrc.local
+legacyver.config.local.*
