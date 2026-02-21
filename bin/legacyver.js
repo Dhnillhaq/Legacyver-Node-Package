@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+require('dotenv').config();
+
 const { program } = require('commander');
 const { readFileSync } = require('fs');
 const { join } = require('path');
