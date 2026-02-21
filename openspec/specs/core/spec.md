@@ -193,8 +193,19 @@ The system SHALL generate human-readable documentation from AST facts using an L
 - And the LLM SHALL NOT be asked to infer behavior not shown in the code or `bodySnippet`
 - And the system prompt SHALL include an explicit negative constraint: "Do not mention any function, class, parameter, or behavior that does not appear in the FileFacts JSON or bodySnippet above"
 
-**Scenario 2: OpenRouter model selection**
-- Given a user sets `--model anthropic/claude-haiku-3-5` flag or `model: anthropic/claude-haiku-3-5` in `.legacyverrc`
+**Scenario 2: Groq provider (default)**
+- Given a user has `GROQ_API_KEY` set or `groqApiKey` in `.legacyverrc`
+- When the LLM Engine initializes with no explicit `--provider` flag
+- Then it SHALL send requests to `https://api.groq.com/openai/v1/chat/completions` using the OpenAI-compatible format
+- And resolve the API key from environment variable `GROQ_API_KEY` or user config (`groqApiKey` field)
+- And env var SHALL take priority over config file value
+- And default to model `llama-3.3-70b-versatile` if none is specified
+- And throw a clear error if no API key found, with instructions to obtain one from `console.groq.com/keys`
+- And cap concurrency to 1 (free tier rate limit: 30 req/min)
+- And use minimum 15s retry-after wait on HTTP 429
+
+**Scenario 2b: OpenRouter provider (optional)**
+- Given a user sets `--provider openrouter` flag or `provider: openrouter` in `.legacyverrc`
 - When the LLM Engine initializes
 - Then it SHALL send all requests to `https://openrouter.ai/api/v1/chat/completions` using the OpenAI-compatible format
 - And resolve the API key from environment variable `OPENROUTER_API_KEY` or user config
@@ -203,12 +214,13 @@ The system SHALL generate human-readable documentation from AST facts using an L
 - And the default model SHALL be `meta-llama/llama-3.3-70b-instruct:free` if none is specified
 
 **Scenario 3: Free model detection and cost gate bypass**
-- Given the configured model ID ends with the suffix `:free`
+- Given the configured provider is Groq, Gemini, Kimi, or Ollama (all inherently free-tier)
+- Or given the configured OpenRouter model ID ends with the suffix `:free`
 - When the cost estimator runs before LLM processing
 - Then the system SHALL skip the cost calculation entirely
 - And SHALL skip the $0.10 confirmation gate
-- And SHALL display a notice: "Using free model — no cost estimate available. Rate limit: 200 req/day"
-- And SHALL reduce default concurrency to 1 to avoid hitting the 20 req/min rate limit
+- And SHALL display a provider-specific notice (e.g. "Using Groq — free tier. Rate limit: 30 req/min, 14,400 req/day")
+- And Groq and Kimi SHALL cap concurrency to 1, Gemini to 2
 - And the `--dry-run` flag SHALL still run AST parsing and display token counts, but note that cost is $0.00
 
 **Scenario 4: Output quality validation (hallucination check)**
@@ -232,35 +244,39 @@ The system SHALL generate human-readable documentation from AST facts using an L
 **Scenario 6: Model listing**
 - Given a user runs `legacyver providers`
 - When the command executes
-- Then it SHALL fetch the OpenRouter model list from `https://openrouter.ai/api/v1/models`
-- And display a filtered table of recommended models with their context window size, cost per 1M tokens, and a "FREE" badge for `:free` models
-- And indicate which model is currently selected
+- Then it SHALL display all supported providers with API key detection status
+- And for OpenRouter, display a filtered table of recommended models with cost per 1M tokens and FREE badges
+- And Groq SHALL be listed first with a [DEFAULT] badge
+- And indicate which provider/model is currently selected
 
 **Scenario 7: Rate limit recovery**
-- Given the OpenRouter API returns HTTP 429 (Too Many Requests)
+- Given any LLM provider API returns HTTP 429 (Too Many Requests)
 - When the queue processes a request
 - Then it SHALL wait with exponential backoff (1s, 2s, 4s)
 - And retry up to 3 times
-- And for free models, increase initial wait to 3s due to stricter rate limits
+- And respect the `retry-after` response header if present (using server-specified wait instead of backoff)
+- And for Groq, apply a minimum 15s wait on retry regardless of header value
+- And for Kimi, apply a minimum 10s wait on retry
 - And continue to the next file if all retries fail
 - And log the failure in the final summary
 
 **Scenario 8: Concurrent processing**
 - Given a project with 50 source files
 - When the LLM Engine processes them
-- Then it SHALL process up to 3 files concurrently by default for paid models
-- And default to 1 concurrent file for free models (rate limit protection)
+- Then it SHALL process up to 3 files concurrently by default for paid models (OpenRouter with non-free model)
+- And default to 1 concurrent file for Groq and Kimi (rate limit protection)
+- And default to 2 concurrent files for Gemini
+- And default to 1 concurrent file for OpenRouter free models
 - And the concurrency limit SHALL be configurable via `--concurrency` flag (1-10) for paid models
-- And for free models, `--concurrency` SHALL be capped at 2 with a warning if user sets higher
+- And for rate-limited providers, `--concurrency` SHALL be capped with a warning if user sets higher
 
-**Scenario 9: Offline fallback via Ollama**
-- Given a user sets `--provider ollama` or `provider: ollama` in `.legacyverrc`
+**Scenario 9: Additional provider support**
+- Given a user sets `--provider gemini`, `--provider kimi`, or `--provider ollama`
 - When the LLM Engine initializes
-- Then it SHALL send requests to the local Ollama API at `http://localhost:11434` instead of OpenRouter
-- And require no API key
-- And default to model `llama3.2` unless overridden
-- And display a clear error if Ollama is not running, with instructions to start it
-- And apply the same quality validation (Scenario 4 and 5) regardless of provider
+- Then for **Gemini**: it SHALL send requests to `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`, require `GEMINI_API_KEY`, default to `gemini-2.0-flash`, and display actual Google API error messages on 429
+- Then for **Kimi**: it SHALL send requests to `https://api.moonshot.cn/v1/chat/completions` (OpenAI-compatible), require `MOONSHOT_API_KEY`, default to `moonshot-v1-8k`, and show 401 message with link to `platform.moonshot.cn/console/api-keys`
+- Then for **Ollama**: it SHALL send requests to `http://localhost:11434/api/chat`, require no API key, default to `llama3.2`, and display a clear error if Ollama is not running with instructions to start it
+- And all providers SHALL apply the same quality validation (hallucination + completeness checks) regardless of provider
 
 ---
 
@@ -333,8 +349,8 @@ The system SHALL be distributable as a globally-installable npm package.
 - And `legacyver --help` SHALL print all commands and flags
 
 **Scenario 2: Zero-config first run**
-- Given a developer has installed legacyver and has `OPENROUTER_API_KEY` set
+- Given a developer has installed legacyver and has `GROQ_API_KEY` set
 - When they run `legacyver analyze ./src` with no other configuration
-- Then the tool SHALL use OpenRouter as the default provider
-- And use `anthropic/claude-haiku-3-5` as the default model
+- Then the tool SHALL use Groq as the default provider
+- And use `llama-3.3-70b-versatile` as the default model
 - And output Markdown to `./legacyver-docs/`

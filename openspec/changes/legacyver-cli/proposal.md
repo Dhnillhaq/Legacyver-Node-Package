@@ -30,7 +30,7 @@ This is a greenfield implementation. The following is being built from scratch a
 
 - **Affected code**: New repository, no existing code impacted
 - **npm registry**: New public package `legacyver` to be published
-- **APIs consumed**: Anthropic, OpenAI, Google AI, Groq, Ollama — all via user-supplied API keys
+- **APIs consumed**: Groq (default — free), Google Gemini (free), Kimi/Moonshot AI (free credits), OpenRouter (paid, 200+ models), Ollama (local) — all via user-supplied API keys
 - **User filesystem**: Writes to `./legacyver-docs/` (or `--out` flag), reads `.legacyverignore`, `.legacyverrc`
 - **No data sent to Legacyver servers**: All analysis happens locally or via user's own LLM API keys
 - **Rollback plan**: npm `unpublish` within 72 hours if critical issues found post-publish; semver patch for fixes

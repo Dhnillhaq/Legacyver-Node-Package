@@ -7,7 +7,7 @@ context: |
   Language: JavaScript (CommonJS)
   CLI Framework: commander
   AST Parsing: web-tree-sitter (Tree-sitter bindings — supports JS, TS, Python, Java, Go, PHP, and 40+ languages)
-  LLM Providers: OpenRouter (primary — unified API gateway to 200+ models including Claude, GPT-4o, Gemini, Llama, Mistral, etc.), Ollama (local/offline fallback)
+  LLM Providers: Groq (default — fastest free tier, 30 req/min), Google Gemini (free tier, 15 req/min), Kimi/Moonshot AI (free credits, moonshot-v1-8k/32k/128k), OpenRouter (paid — unified API gateway to 200+ models), Ollama (local/offline)
   Core Architecture: 4-stage pipeline — Crawler → AST Parser → LLM Engine → Renderer
   Output Formats: Markdown (default), HTML, JSON
   Key Design Principle: LLM is a WRITER not an ANALYST. AST extracts hard facts; LLM only explains them in plain English.

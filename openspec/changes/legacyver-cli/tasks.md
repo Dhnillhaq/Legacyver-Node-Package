@@ -75,7 +75,7 @@
 - [x] 5.10 Create `src/llm/re-prompter.js` — triggered when completeness check fails with >30% missing exports; builds a follow-up prompt listing the missing symbols explicitly: "The following exported symbols were not documented in your previous response. Please document each one based only on the FileFacts provided: [list]"; sends as a second LLM call and merges the response into the original fragment; if re-prompt also fails completeness check, emits warning and moves on
 - [x] 5.11 Update `src/cli/commands/analyze.js` — after each `DocFragment` is generated: run `validator.js`; if hallucinations found, log warnings; if completeness fails >30%, call `re-prompter.js`; append `_qualityWarnings[]` to fragment; include quality warning counts in final summary printout
 - [x] 5.12 Update `src/llm/providers/openrouter.js` — update `legacyver providers` command handler: fetch live model list from `https://openrouter.ai/api/v1/models`, display filtered table with FREE badge for `:free` suffix models, highlight currently selected model
-- [ ] 5.13 Update `package.json` — remove `@anthropic-ai/sdk`, `openai`, `@google/generative-ai`, `groq-sdk` from dependencies; these are no longer needed since OpenRouter provides a unified endpoint; retain only native `fetch` (Node 18+) for HTTP calls
+- [x] 5.13 Keep only native `fetch` (Node 18+) for all HTTP calls — no SDK dependencies for any provider. All providers (Groq, Gemini, Kimi, OpenRouter, Ollama) use raw `fetch` with provider-specific payloads.
 - [x] 5.14 Write `test/chunker.test.js` — tests for token counting, truncation behavior, message construction with mock `FileFacts`
 - [x] 5.15 Write `test/validator.test.js` — unit tests for hallucination detection: assert known-hallucinated identifier is flagged, assert legitimate identifier from FileFacts is not flagged; unit tests for completeness check: assert missing export is detected, assert re-prompt threshold of 30% triggers correctly
 - [x] 5.16 Write `test/providers.openrouter.test.js` — mock HTTP tests for OpenRouter adapter: assert correct headers are sent, assert free model detection via `:free` suffix, assert `NoApiKeyError` thrown when key missing, assert HTTP 429 triggers retry with correct backoff timing
@@ -113,3 +113,20 @@
 - [x] 9.5 Run `legacyver analyze test/fixtures/js-express/ --dry-run` and verify cost estimation output using OpenRouter model pricing
 - [x] 9.6 Run `npm login` and `npm publish --access public`
 - [x] 9.7 Verify install works: `npm install -g legacyver` in a fresh shell; run `legacyver --version`
+
+## Group 10: Multi-Provider Hardening (post-publish)
+
+- [x] 10.1 Add Groq provider (`src/llm/providers/groq.js`) — OpenAI-compatible endpoint at `https://api.groq.com/openai/v1`, GROQ_API_KEY env var, default model `llama-3.3-70b-versatile`, 15s minimum retry-after, concurrency capped to 1
+- [x] 10.2 Add Google Gemini provider (`src/llm/providers/gemini.js`) — REST API at `https://generativelanguage.googleapis.com/v1beta`, GEMINI_API_KEY env var, default model `gemini-2.0-flash`, concurrency capped to 2, actual Google error message shown on 429
+- [x] 10.3 Add Kimi (Moonshot AI) provider (`src/llm/providers/kimi.js`) — OpenAI-compatible endpoint at `https://api.moonshot.cn/v1`, MOONSHOT_API_KEY env var, default model `moonshot-v1-8k`, 10s minimum retry-after, concurrency capped to 1
+- [x] 10.4 Register Groq, Gemini, Kimi in `src/llm/index.js` factory; Groq is now the default provider (replaces OpenRouter as default)
+- [x] 10.5 Update `src/llm/free-model.js` — treat Groq, Gemini, Kimi, and Ollama as always-free; add provider-specific concurrency caps and info messages
+- [x] 10.6 Fix API key priority — env var takes priority over `.legacyverrc` config value for ALL providers (`process.env.X || config.x`, not the other way)
+- [x] 10.7 Fix `.legacyverrc` model mutation bug — shallow copy cosmiconfig result; discard file model when CLI `--provider` differs from config provider
+- [x] 10.8 Update `src/cli/commands/init.js` — add Groq, Gemini, Kimi to provider wizard; Groq is now the default choice; provider-specific API key labels and hints
+- [x] 10.9 Update `src/cli/commands/providers.js` — reorder to show Groq first with [DEFAULT] badge; add Gemini, Kimi, OpenRouter, Ollama sections with API key status
+- [x] 10.10 Update `src/cli/commands/analyze.js` — provider-specific no-API-key error messages and fix instructions for all 5 providers; Groq is the default else branch
+- [x] 10.11 Update `src/utils/config.js` — change default provider from `openrouter` to `groq`
+- [x] 10.12 Slim LLM prompts by ~51% — reduce system prompt (1,264 → 558 chars), strip null/empty fields from FileFacts JSON, cap source code at 150 lines, use compact import format
+- [x] 10.13 Update `queue.js` to respect `retryAfter` from `RateLimitError` — wait server-specified duration before retry
+- [x] 10.14 Add `src/crawler/filters.js` ignore patterns for test/spec/openspec directories
