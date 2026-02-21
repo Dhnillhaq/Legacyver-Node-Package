@@ -144,11 +144,12 @@ module.exports = async function analyzeCommand(target, flags) {
     provider = createProvider(config);
   } catch (e) {
     if (e.code === 'NO_API_KEY') {
-      const providerName = (config.provider || '').toLowerCase();
+      const providerName = (config.provider || 'groq').toLowerCase();
       const isGroq = providerName === 'groq';
       const isGemini = providerName === 'gemini';
       const isKimi = providerName === 'kimi';
-      const label = isKimi ? 'Kimi (Moonshot)' : isGemini ? 'Google Gemini' : isGroq ? 'Groq' : 'OpenRouter';
+      const isOpenRouter = providerName === 'openrouter';
+      const label = isKimi ? 'Kimi (Moonshot)' : isGemini ? 'Google Gemini' : isOpenRouter ? 'OpenRouter' : 'Groq';
       console.error(pc.red(`\n  No API key found for ${label}.\n`));
       console.error('  To fix, choose one of:\n');
       if (isKimi) {
@@ -157,32 +158,31 @@ module.exports = async function analyzeCommand(target, flags) {
         console.error(pc.cyan('  2. Set an environment variable:'));
         console.error('       export MOONSHOT_API_KEY=your_key_here\n');
         console.error('  Get a key at: https://platform.moonshot.cn/console/api-keys\n');
-      } else if (isGroq) {
-        console.error(pc.cyan('  1. Run the setup wizard:'));
-        console.error('       legacyver init\n');
-        console.error(pc.cyan('  2. Set an environment variable:'));
-        console.error('       export GROQ_API_KEY=your_key_here\n');
-        console.error('  Get a free Groq key at: https://console.groq.com/keys\n');
       } else if (isGemini) {
         console.error(pc.cyan('  1. Run the setup wizard:'));
         console.error('       legacyver init\n');
         console.error(pc.cyan('  2. Set an environment variable:'));
         console.error('       export GEMINI_API_KEY=your_key_here\n');
         console.error('  Get a free key at: https://aistudio.google.com/apikey\n');
-      } else {
+      } else if (isOpenRouter) {
         console.error(pc.cyan('  1. Run the setup wizard:'));
         console.error('       legacyver init\n');
         console.error(pc.cyan('  2. Set an environment variable:'));
         console.error('       export OPENROUTER_API_KEY=your_key_here\n');
+        console.error('  Get a free OpenRouter key at: https://openrouter.ai/keys\n');
+      } else {
+        // Default: Groq
+        console.error(pc.cyan('  1. Run the setup wizard:'));
+        console.error('       legacyver init\n');
+        console.error(pc.cyan('  2. Set an environment variable:'));
+        console.error('       export GROQ_API_KEY=your_key_here\n');
+        console.error('  Get a free Groq key at: https://console.groq.com/keys\n');
         console.error(pc.cyan('  3. Use Google Gemini instead (free, 15 req/min):'));
         console.error('       legacyver analyze --provider gemini\n');
-        console.error(pc.cyan('  4. Use Groq instead (fast & free):'));
-        console.error('       legacyver analyze --provider groq\n');
-        console.error(pc.cyan('  5. Use Kimi (Moonshot) instead (free credits):'));
+        console.error(pc.cyan('  4. Use Kimi (Moonshot) instead (free credits):'));
         console.error('       legacyver analyze --provider kimi\n');
-        console.error(pc.cyan('  6. Use local Ollama instead (no key needed):'));
+        console.error(pc.cyan('  5. Use local Ollama instead (no key needed):'));
         console.error('       legacyver analyze --provider ollama\n');
-        console.error('  Get a free OpenRouter key at: https://openrouter.ai/keys\n');
       }
       process.exit(1);
     }

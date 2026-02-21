@@ -9,7 +9,7 @@ const pc = require('picocolors');
  * @returns {Object} mutated config
  */
 function applyFreeModelPolicy(config) {
-  const provider = (config.provider || 'openrouter').toLowerCase();
+  const provider = (config.provider || 'groq').toLowerCase();
 
   // Ollama, Groq, Gemini, and Kimi are always free — skip openrouter-specific logic
   if (provider === 'ollama' || provider === 'groq' || provider === 'gemini' || provider === 'kimi') {

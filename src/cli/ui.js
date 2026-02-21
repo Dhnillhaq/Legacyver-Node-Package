@@ -80,6 +80,31 @@ function printSummary(stats) {
   }
   console.log(`  Output:           ${stats.outputDir}`);
   console.log('');
+
+  // Show upgrade tip only when user is on the shared/default key (no personal env var set)
+  const usingOwnKey = !!(
+    process.env.GROQ_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.MOONSHOT_API_KEY ||
+    process.env.OPENROUTER_API_KEY
+  );
+  if (!usingOwnKey) {
+    console.log(pc.dim('─────────────────────────────────────────────────'));
+    console.log(pc.cyan('  Bring your own API key for better results:'));
+    console.log('');
+    console.log(`  ${pc.bold('Free tiers')}  — more quota, same zero cost`);
+    console.log(pc.dim('  Groq:      https://console.groq.com/keys'));
+    console.log(pc.dim('  Gemini:    https://aistudio.google.com/apikey'));
+    console.log('');
+    console.log(`  ${pc.bold('Premium')}     — smarter models (Claude, GPT-4o, etc.)`);
+    console.log(pc.dim('  OpenRouter: https://openrouter.ai/keys'));
+    console.log(pc.dim('  Access 200+ models, pay only for what you use.'));
+    console.log('');
+    console.log(pc.dim('  Run `legacyver init` to set your key, then:'));
+    console.log(pc.dim('  legacyver analyze --provider openrouter --model anthropic/claude-haiku-3-5'));
+    console.log(pc.dim('─────────────────────────────────────────────────'));
+    console.log('');
+  }
 }
 
 module.exports = { createSpinner, createProgressBar, confirmPrompt, printSummary };

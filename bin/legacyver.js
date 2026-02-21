@@ -21,11 +21,11 @@ program
   .option('--out <dir>', 'Output directory', './legacyver-docs')
   .option('--format <fmt>', 'Output format: markdown | html | json', 'markdown')
   .option('--model <model>', 'LLM model to use')
-  .option('--provider <provider>', 'LLM provider: openrouter | ollama', 'openrouter')
+  .option('--provider <provider>', 'LLM provider: groq | ollama', 'groq')
   .option('--concurrency <n>', 'Concurrent LLM requests (1-10)', '3')
   .option('--dry-run', 'Run AST parsing only, no LLM calls')
   .option('--incremental', 'Only re-analyze changed files')
-  .option('--no-confirm', 'Skip cost confirmation prompt')
+  .option('--no-confirm', 'Skip cost confirmation prompt')  
   .option('--json-summary', 'Output machine-readable JSON summary')
   .option('--max-file-size <kb>', 'Skip files larger than this size in KB', '500')
   .action(analyzeCmd);

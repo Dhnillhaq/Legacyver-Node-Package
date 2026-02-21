@@ -18,27 +18,29 @@ module.exports = async function providersCommand() {
   const config = loadConfig({});
 
   console.log(pc.bold('\nLegacyver — Supported LLM Providers\n'));
-  console.log(pc.bold('OpenRouter') + '  (https://openrouter.ai)');
-  console.log('  Unified gateway to 200+ models. Set OPENROUTER_API_KEY env variable.');
-  console.log('  Status: ' + (process.env.OPENROUTER_API_KEY ? pc.green('API key detected') : pc.yellow('No API key found')));
-  console.log('');
-  console.log(pc.bold('Ollama') + '       (https://ollama.ai)');
-  console.log('  Local offline LLM. No API key required. Run `ollama serve` first.');
-  console.log('');
-  console.log(pc.bold('Groq') + '         (https://groq.com)');
-  console.log('  Fastest free LLM inference. Set GROQ_API_KEY env variable.');
+
+  console.log(pc.bold('Groq') + pc.green(' [DEFAULT]') + '  (https://groq.com)');
+  console.log('  Fastest free LLM inference. 30 req/min, 14,400 req/day. Set GROQ_API_KEY env variable.');
   console.log('  Status: ' + (process.env.GROQ_API_KEY ? pc.green('API key detected') : pc.yellow('No API key found')));
   console.log('  Get a free key at: https://console.groq.com/keys');
   console.log('');
-  console.log(pc.bold('Google Gemini') + ' (https://ai.google.dev)');
+  console.log(pc.bold('Google Gemini') + '  (https://ai.google.dev)');
   console.log('  Free tier: 15 req/min, 1,500 req/day. Set GEMINI_API_KEY env variable.');
   console.log('  Status: ' + (process.env.GEMINI_API_KEY ? pc.green('API key detected') : pc.yellow('No API key found')));
   console.log('  Get a free key at: https://aistudio.google.com/apikey');
   console.log('');
-  console.log(pc.bold('Kimi (Moonshot AI)') + ' (https://platform.moonshot.cn)');
+  console.log(pc.bold('Kimi (Moonshot AI)') + '  (https://platform.moonshot.cn)');
   console.log('  Free credits on sign-up. Models: moonshot-v1-8k/32k/128k. Set MOONSHOT_API_KEY env variable.');
   console.log('  Status: ' + (process.env.MOONSHOT_API_KEY ? pc.green('API key detected') : pc.yellow('No API key found')));
   console.log('  Get a key at: https://platform.moonshot.cn/console/api-keys');
+  console.log('');
+  console.log(pc.bold('OpenRouter') + '  (https://openrouter.ai)');
+  console.log('  Unified gateway to 200+ models (Claude, GPT-4o, Llama, etc). Set OPENROUTER_API_KEY env variable.');
+  console.log('  Status: ' + (process.env.OPENROUTER_API_KEY ? pc.green('API key detected') : pc.yellow('No API key found')));
+  console.log('  Get a key at: https://openrouter.ai/keys');
+  console.log('');
+  console.log(pc.bold('Ollama') + '  (https://ollama.ai)');
+  console.log('  Local offline LLM. No API key required. Run `ollama serve` first.');
   console.log('');
 
   console.log(pc.bold('Recommended Models (via OpenRouter):'));

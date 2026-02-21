@@ -24,8 +24,8 @@ module.exports = async function initCommand() {
     }
   }
 
-  const providerRaw = await ask(rl, `LLM provider [openrouter/gemini/groq/kimi/ollama] (default: openrouter): `);
-  const providerChoice = providerRaw.trim() || 'openrouter';
+  const providerRaw = await ask(rl, `LLM provider [groq/gemini/kimi/openrouter/ollama] (default: groq): `);
+  const providerChoice = providerRaw.trim() || 'groq';
   const isOllama = providerChoice === 'ollama';
   const isGroq = providerChoice === 'groq';
   const isGemini = providerChoice === 'gemini';

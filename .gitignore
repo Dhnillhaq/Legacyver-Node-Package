@@ -2,7 +2,7 @@
 .opencode/
 .github/
 .legacyverrc
-node_modules/
+**/.legacyver-cache/
 
 # Dependency directories
 node_modules/
