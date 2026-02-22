@@ -69,4 +69,12 @@ program
   .description('Log out and stop syncing docs to the cloud')
   .action(logoutCmd);
 
+// push command
+const pushCmd = require('../src/cli/commands/push');
+program
+  .command('push [target]')
+  .description('Manually push generated docs to the cloud database')
+  .option('--out <dir>', 'Docs output directory to read from', './legacyver-docs')
+  .action(pushCmd);
+
 program.parse(process.argv);

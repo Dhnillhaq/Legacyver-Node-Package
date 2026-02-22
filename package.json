@@ -1,6 +1,6 @@
 {
   "name": "legacyver",
-  "version": "2.1.7",
+  "version": "2.1.8",
   "description": "AI-powered CLI tool to auto-generate technical documentation from legacy/undocumented codebases",
   "main": "src/index.js",
   "bin": {
