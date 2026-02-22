@@ -4,6 +4,7 @@
 
 ### Requirement: CLI Entry Point
 The system SHALL expose a globally-installable CLI command `legacyver` via npm.
+Commands: `analyze`, `init`, `providers`, `cache clear`, `login`, `logout`, `push`, `--version`.
 
 **Scenarios:**
 
@@ -15,6 +16,7 @@ The system SHALL expose a globally-installable CLI command `legacyver` via npm.
 - And produce documentation in `./legacyver-docs/` by default
 - And display a progress bar during analysis
 - And print a summary (files analyzed, tokens used, estimated cost) on completion
+- And if the user is logged in, automatically push generated docs to the cloud
 
 **Scenario 2: Dry run without LLM**
 - Given a developer wants to preview cost before committing
@@ -354,3 +356,114 @@ The system SHALL be distributable as a globally-installable npm package.
 - Then the tool SHALL use Groq as the default provider
 - And use `llama-3.3-70b-versatile` as the default model
 - And output Markdown to `./legacyver-docs/`
+
+---
+
+### Requirement: 5-Stage Pipeline
+The analyze command SHALL run a 5-stage pipeline in order: Crawler → AST Parser → LLM Engine → Renderer → Cloud Sync.
+
+**Scenarios:**
+
+**Scenario 1: Stage ordering**
+- Given a project with source files
+- When `legacyver analyze` runs
+- Then stages SHALL execute in order: Crawler (Stage 1), AST Parser (Stage 2), LLM Engine (Stage 3), Renderer (Stage 4), Cloud Sync (Stage 5)
+- And each stage SHALL receive the output of the previous stage
+
+**Scenario 2: Renderer failure does not cancel Cloud Sync**
+- Note: Cloud Sync (Stage 5) only runs after Renderer (Stage 4) completes successfully and local files are written
+
+**Scenario 3: Cloud Sync failure does not fail the analyze run**
+- Given Stage 5 (Cloud Sync) throws any error
+- Then the command SHALL exit with code 0
+- And all local output files SHALL remain intact
+- And a yellow warning SHALL be shown: "Cloud sync failed: <reason>"
+
+---
+
+### Requirement: Stage 5 — Cloud Sync
+After `legacyver analyze` completes rendering, the system SHALL auto-push generated docs to the cloud database if the user is logged in. The push is non-blocking; failures are downgraded to warnings.
+
+**Scenarios:**
+
+**Scenario 1: Authenticated user — cloud sync runs automatically**
+- Given `legacyver analyze` completes Stage 4 (Renderer)
+- And `~/.legacyver/session.json` contains a `token` field
+- When Stage 5 begins
+- Then the system SHALL display a spinner: "Syncing docs to cloud..."
+- And validate the session token against `app.user_sessions`
+- And push all generated doc fragments to `app.documentation_pages`
+- And print "[done] Docs synced to cloud (N files)" where N = pages upserted
+
+**Scenario 2: Token invalid or expired — push silently skipped**
+- Given the session file contains a token
+- And the token is expired or revoked in `app.user_sessions`
+- When Stage 5 runs `validateToken()`
+- Then it SHALL return null
+- And Stage 5 SHALL silently skip the push (no error, no warning)
+
+**Scenario 3: Not logged in — push silently skipped**
+- Given `~/.legacyver/session.json` does not exist or has no `token`
+- When Stage 5 runs
+- Then push is skipped entirely with no output
+- And `printSummary()` includes a cloud sync upgrade tip mentioning `legacyver login`
+
+**Scenario 4: DB push fails mid-upload**
+- Given the push starts but fails partway through (network drop, DB timeout)
+- When the error is caught
+- Then the system SHALL log a yellow warning: "Cloud sync failed: <error>"
+- And the analyze command SHALL still exit 0
+
+---
+
+### Requirement: CLI Session Management
+The system SHALL store auth session in `~/.legacyver/session.json` as a plaintext JSON file.
+
+**Scenarios:**
+
+**Scenario 1: Session file structure**
+- Given a user has logged in
+- When the session is saved
+- Then `~/.legacyver/session.json` SHALL contain `{ "token": "<raw token>", "username": "<username>", "email": "<email>" }`
+- And the directory `~/.legacyver/` SHALL be created if it does not exist
+
+**Scenario 2: Session cleared on logout**
+- Given a user runs `legacyver logout`
+- When `clearSession()` runs
+- Then `~/.legacyver/session.json` SHALL be deleted
+- And subsequent `loadSession()` calls SHALL return `{}`
+
+**Scenario 3: Missing session file treated as logged out**
+- Given `~/.legacyver/session.json` does not exist
+- When `loadSession()` is called
+- Then it SHALL return `{}` without throwing
+
+---
+
+### Requirement: Token Validation via Database
+The system SHALL validate session tokens by SHA-256 hashing them and looking up the hash in `app.user_sessions`. Tokens are never sent raw to the DB.
+
+**Scenarios:**
+
+**Scenario 1: Valid token returns user info**
+- Given a raw token string from `session.json`
+- When `validateToken(token)` is called
+- Then it SHALL SHA-256 hash the token
+- And query `app.user_sessions JOIN app.users WHERE token_hash = $1 AND expires_at > NOW() AND revoked_at IS NULL`
+- And return `{ userId, username, email }` if a row is found
+
+**Scenario 2: Expired or revoked token**
+- Given a token that exists in `app.user_sessions` but has `expires_at < NOW()` or `revoked_at IS NOT NULL`
+- When `validateToken(token)` is called
+- Then it SHALL return `null`
+
+**Scenario 3: Token not found**
+- Given a token with no matching row in `app.user_sessions`
+- When `validateToken(token)` is called
+- Then it SHALL return `null`
+
+**Scenario 4: Logout revokes token in DB**
+- Given a user runs `legacyver logout`
+- When `revokeToken(token)` is called
+- Then it SHALL update `app.user_sessions SET revoked_at = NOW()` for the matching token hash
+- And then `clearSession()` SHALL delete the local session file
