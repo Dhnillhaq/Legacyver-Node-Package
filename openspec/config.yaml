@@ -3,18 +3,24 @@ schema: spec-driven
 context: |
   Project: Legacyver — AI-powered CLI tool to auto-generate technical documentation from legacy/undocumented codebases.
   Published as: npm global package (`npm install -g legacyver`)
+  Version: 2.1.8
   Runtime: Node.js >= 18.0.0
   Language: JavaScript (CommonJS)
   CLI Framework: commander
-  AST Parsing: web-tree-sitter (Tree-sitter bindings — supports JS, TS, Python, Java, Go, PHP, and 40+ languages)
+  AST Parsing: web-tree-sitter (Tree-sitter bindings — supports JS, TS, Python, Java, Go, PHP, and 40+ languages; parsers currently use regex/heuristics as fallback, NOT actual WASM grammars)
   LLM Providers: Groq (default — fastest free tier, 30 req/min), Google Gemini (free tier, 15 req/min), Kimi/Moonshot AI (free credits, moonshot-v1-8k/32k/128k), OpenRouter (paid — unified API gateway to 200+ models), Ollama (local/offline)
-  Core Architecture: 4-stage pipeline — Crawler → AST Parser → LLM Engine → Renderer
+  Core Architecture: 5-stage pipeline — Crawler → AST Parser → LLM Engine → Renderer → Cloud Sync
   Output Formats: Markdown (default), HTML, JSON
   Key Design Principle: LLM is a WRITER not an ANALYST. AST extracts hard facts; LLM only explains them in plain English.
   Anti-hallucination Strategy: LLM never sees raw code without pre-extracted AST facts (function names, params, imports, call graph)
   Incremental Analysis: SHA-256 file hash cache in .legacyver-cache/ — only re-analyzes changed files
   Rate Limiting: p-limit concurrency control + p-retry exponential backoff
-  PHP/Laravel Support: tree-sitter-php grammar; Laravel-aware parser detects Routes, Controllers, Models (Eloquent), Middleware, Service Providers, Blade templates
+  PHP/Laravel Support: Laravel-aware parser detects Routes, Controllers, Models (Eloquent), Middleware, Service Providers, Blade templates
+  Cloud Sync: After analyze, auto-push generated docs to PostgreSQL DB (hackathon: weci_holic on 103.185.52.138:1185) if user is logged in
+  Auth: GitHub OAuth browser flow — CLI spawns local HTTP server, opens browser to web app, receives token callback; session stored in ~/.legacyver/session.json
+  DB Schema: app.users → app.user_sessions, app.repositories, app.documentations, app.documentation_pages
+  Token Validation: CLI validates session token against app.user_sessions via SHA-256 hash lookup
+  Commands: analyze, init, providers, cache clear, login, logout, push, version
   Testing: Vitest, fixture projects in test/fixtures/
 
 rules:
