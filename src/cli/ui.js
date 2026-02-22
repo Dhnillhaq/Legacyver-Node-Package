@@ -81,6 +81,19 @@ function printSummary(stats) {
   console.log(`  Output:           ${stats.outputDir}`);
   console.log('');
 
+  // Show login tip if user is not logged in
+  const { loadSession } = require('../utils/config');
+  const session = loadSession();
+  if (!session.token) {
+    console.log(pc.dim('─────────────────────────────────────────────────'));
+    console.log(pc.cyan('  Sync docs to the cloud:'));
+    console.log('');
+    console.log(`  Run ${pc.bold('legacyver login')} to create an account and`);
+    console.log('  auto-sync generated docs after every analyze run.');
+    console.log(pc.dim('─────────────────────────────────────────────────'));
+    console.log('');
+  }
+
   // Show upgrade tip only when user is on the shared/default key (no personal env var set)
   const usingOwnKey = !!(
     process.env.GROQ_API_KEY ||

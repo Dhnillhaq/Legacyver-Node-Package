@@ -14,10 +14,21 @@ const RECOMMENDED_MODELS = [
 ];
 
 module.exports = async function providersCommand() {
-  const { loadConfig } = require('../../utils/config');
+  const { loadConfig, loadSession } = require('../../utils/config');
   const config = loadConfig({});
 
-  console.log(pc.bold('\nLegacyver — Supported LLM Providers\n'));
+  // ─── Legacyver Account ────────────────────────────────────────────────────
+  const session = loadSession();
+  console.log(pc.bold('\nLegacyver Account'));
+  if (session.token) {
+    console.log(`  ${pc.green('Logged in')} as ${session.username} (${session.email})`);
+    console.log('  Generated docs will sync to the cloud after each analyze run.');
+  } else {
+    console.log(`  ${pc.yellow('Not logged in')} — run ${pc.cyan('legacyver login')} to enable cloud sync`);
+  }
+  console.log('');
+
+  console.log(pc.bold('Legacyver — Supported LLM Providers\n'));
 
   console.log(pc.bold('Groq') + pc.green(' [DEFAULT]') + '  (https://groq.com)');
   console.log('  Fastest free LLM inference. 30 req/min, 14,400 req/day. Set GROQ_API_KEY env variable.');

@@ -55,4 +55,18 @@ program
   .description('Delete the .legacyver-cache/ directory')
   .action(cacheCmd);
 
+// login command
+const loginCmd = require('../src/cli/commands/login');
+program
+  .command('login')
+  .description('Log in to sync generated docs to the cloud')
+  .action(loginCmd);
+
+// logout command
+const logoutCmd = require('../src/cli/commands/logout');
+program
+  .command('logout')
+  .description('Log out and stop syncing docs to the cloud')
+  .action(logoutCmd);
+
 program.parse(process.argv);

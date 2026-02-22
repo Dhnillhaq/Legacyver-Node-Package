@@ -23,3 +23,8 @@ legacyver.config.local.*
 .agent/
 .opencode/
 .github/
+
+# Sensitive / hackathon credentials — never publish
+temp_credentials/
+.env
+.env.*

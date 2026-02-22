@@ -1,6 +1,32 @@
 'use strict';
 
 const { cosmiconfigSync } = require('cosmiconfig');
+const fs = require('fs');
+const path = require('path');
+
+/**
+ * Session file stores auth state across CLI invocations.
+ * Lives in ~/.legacyver/session.json (user-level, not project-level).
+ */
+const SESSION_DIR = path.join(require('os').homedir(), '.legacyver');
+const SESSION_FILE = path.join(SESSION_DIR, 'session.json');
+
+function loadSession() {
+  try {
+    return JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function saveSession(data) {
+  fs.mkdirSync(SESSION_DIR, { recursive: true });
+  fs.writeFileSync(SESSION_FILE, JSON.stringify(data, null, 2), 'utf8');
+}
+
+function clearSession() {
+  try { fs.unlinkSync(SESSION_FILE); } catch { /* ignore */ }
+}
 
 const explorer = cosmiconfigSync('legacyver', {
   searchPlaces: [
@@ -61,4 +87,4 @@ function loadConfig(cliFlags = {}) {
   return { ...defaults, ...fileConfig, ...cleanCli };
 }
 
-module.exports = { loadConfig };
+module.exports = { loadConfig, loadSession, saveSession, clearSession };

@@ -251,6 +251,28 @@ module.exports = async function analyzeCommand(target, flags) {
     cache.autoAddToGitignore(targetDir);
   }
 
+  // ─── Stage 5: Cloud sync ──────────────────────────────────────────────────
+  let cloudResult = { skipped: true };
+  try {
+    const { pushToDatabase } = require('../../db/index');
+    const syncSpinner = createSpinner('Syncing docs to cloud...');
+
+    // Only show spinner if user is logged in
+    const { loadSession } = require('../../utils/config');
+    const session = loadSession();
+    if (session.token) {
+      syncSpinner.start();
+    }
+
+    cloudResult = await pushToDatabase(allFragments, targetDir);
+
+    if (!cloudResult.skipped) {
+      syncSpinner.succeed(`Docs synced to cloud (${cloudResult.pushed} files)`);
+    }
+  } catch (syncErr) {
+    logger.warn('Cloud sync failed: ' + syncErr.message);
+  }
+
   // ─── Summary ─────────────────────────────────────────────────────────────
   const stats = {
     filesAnalyzed: filesToAnalyze.length,
