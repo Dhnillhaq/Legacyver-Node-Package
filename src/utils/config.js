@@ -59,7 +59,7 @@ function loadConfig(cliFlags = {}) {
   }
 
   const defaults = {
-    provider: 'groq',
+    provider: 'openrouter',
     model: undefined,
     format: 'markdown',
     out: './legacyver-docs',

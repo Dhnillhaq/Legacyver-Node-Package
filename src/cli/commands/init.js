@@ -24,8 +24,8 @@ module.exports = async function initCommand() {
     }
   }
 
-  const providerRaw = await ask(rl, `LLM provider [groq/gemini/kimi/openrouter/ollama] (default: groq): `);
-  const providerChoice = providerRaw.trim() || 'groq';
+  const providerRaw = await ask(rl, `LLM provider [openrouter/groq/gemini/kimi/ollama] (default: openrouter): `);
+  const providerChoice = providerRaw.trim() || 'openrouter';
   const isOllama = providerChoice === 'ollama';
   const isGroq = providerChoice === 'groq';
   const isGemini = providerChoice === 'gemini';
@@ -39,7 +39,7 @@ module.exports = async function initCommand() {
         ? 'gemini-2.0-flash'
         : isKimi
           ? 'moonshot-v1-8k'
-          : 'meta-llama/llama-3.3-70b-instruct:free';
+          : 'meta-llama/llama-3.1-8b-instruct'; // default: openrouter
 
   let apiKey = '';
   if (!isOllama) {
@@ -83,6 +83,6 @@ module.exports = async function initCommand() {
         ? 'legacyver analyze --provider gemini'
         : isKimi
           ? 'legacyver analyze --provider kimi'
-          : 'legacyver analyze';
+          : 'legacyver analyze'; // openrouter is the default, no flag needed
   console.log(pc.cyan(`\nRun \`${exampleCmd}\` to generate documentation.`));
 };

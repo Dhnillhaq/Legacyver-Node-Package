@@ -3,11 +3,14 @@
 const { NoApiKeyError, RateLimitError } = require('../../utils/errors');
 const logger = require('../../utils/logger');
 
-const DEFAULT_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
+const DEFAULT_MODEL = 'meta-llama/llama-3.1-8b-instruct';
+// Built-in shared key — lets users run legacyver out of the box without setup.
+// Users can override with their own OPENROUTER_API_KEY env var for higher rate limits.
+const BUILT_IN_KEY = 'sk-or-v1-YOURBUILTINKEYGOESHERE'; // --- IGNORE ---
 
 class OpenRouterProvider {
   constructor(config) {
-    this.apiKey = process.env.OPENROUTER_API_KEY || config.apiKey;
+    this.apiKey = process.env.OPENROUTER_API_KEY || config.apiKey || BUILT_IN_KEY;
     if (!this.apiKey) {
       throw new NoApiKeyError('openrouter');
     }

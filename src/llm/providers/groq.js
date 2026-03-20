@@ -6,10 +6,9 @@ const GROQ_BASE = 'https://api.groq.com/openai/v1';
 const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
 // Built-in shared key — lets users run legacyver out of the box without setup.
 // Users can override with their own GROQ_API_KEY env var for higher rate limits.
-const BUILT_IN_KEY = process.env.GROQ_API_KEY;
 class GroqProvider {
   constructor(config) {
-    this.apiKey = process.env.GROQ_API_KEY || config.groqApiKey || BUILT_IN_KEY;
+    this.apiKey = process.env.GROQ_API_KEY || config.groqApiKey;
     if (!this.apiKey) throw new NoApiKeyError('groq');
     this.model = config.model || DEFAULT_MODEL;
     this.name = 'groq';

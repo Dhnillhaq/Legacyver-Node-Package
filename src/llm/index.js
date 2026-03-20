@@ -12,9 +12,10 @@ const { KimiProvider } = require('./providers/kimi');
  * @returns {OpenRouterProvider|OllamaProvider|GroqProvider|GeminiProvider|KimiProvider}
  */
 function createProvider(config) {
-  const provider = (config.provider || 'groq').toLowerCase();
+  const provider = (config.provider || 'openrouter').toLowerCase();
   switch (provider) {
     case 'openrouter':
+    default:
       return new OpenRouterProvider(config);
     case 'ollama':
       return new OllamaProvider(config);
@@ -23,7 +24,6 @@ function createProvider(config) {
     case 'kimi':
       return new KimiProvider(config);
     case 'groq':
-    default:
       return new GroqProvider(config);
   }
 }

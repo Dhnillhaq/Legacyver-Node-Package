@@ -9,7 +9,7 @@ const pc = require('picocolors');
  * @returns {Object} mutated config
  */
 function applyFreeModelPolicy(config) {
-  const provider = (config.provider || 'groq').toLowerCase();
+  const provider = (config.provider || 'openrouter').toLowerCase();
 
   // Ollama, Groq, Gemini, and Kimi are always free — skip openrouter-specific logic
   if (provider === 'ollama' || provider === 'groq' || provider === 'gemini' || provider === 'kimi') {
@@ -45,7 +45,7 @@ function applyFreeModelPolicy(config) {
     return config;
   }
 
-  const model = config.model || 'meta-llama/llama-3.3-70b-instruct:free';
+  const model = config.model || 'meta-llama/llama-3.1-8b-instruct:free';
   if (!model.endsWith(':free')) {
     config.isFreeModel = false;
     return config;

@@ -25,7 +25,7 @@ let modelPricingCachedAt = 0;
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 const FALLBACK_PRICING = {
-  'meta-llama/llama-3.3-70b-instruct:free': { input: 0, output: 0 },
+  'meta-llama/llama-3.1-8b-instruct': { input: 0.02 / 1e6, output: 0.05 / 1e6 },
   'anthropic/claude-haiku-3-5': { input: 0.8 / 1e6, output: 4.0 / 1e6 },
   'anthropic/claude-sonnet-4-5': { input: 3.0 / 1e6, output: 15.0 / 1e6 },
   'openai/gpt-4o-mini': { input: 0.15 / 1e6, output: 0.6 / 1e6 },
@@ -64,7 +64,7 @@ async function fetchModelPricing() {
  * @returns {Promise<{totalInputTokens, totalOutputTokens, estimatedCostUSD, modelId}>}
  */
 async function estimateCost(chunks, config) {
-  const modelId = config.model || 'meta-llama/llama-3.3-70b-instruct:free';
+  const modelId = config.model || 'meta-llama/llama-3.1-8b-instruct';
   const pricing = await fetchModelPricing();
   const modelPricing = pricing[modelId] || { input: 0, output: 0 };
 

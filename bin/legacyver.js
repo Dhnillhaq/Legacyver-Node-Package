@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-require('dotenv').config();
-
 const { program } = require('commander');
 const { readFileSync } = require('fs');
 const { join } = require('path');
@@ -20,16 +18,16 @@ const analyzeCmd = require('../src/cli/commands/analyze');
 program
   .command('analyze [target]')
   .description('Analyze a directory and generate documentation')
-  .option('--out <dir>', 'Output directory', './legacyver-docs')
-  .option('--format <fmt>', 'Output format: markdown | html | json', 'markdown')
+  .option('--out <dir>', 'Output directory (default: ./legacyver-docs)')
+  .option('--format <fmt>', 'Output format: markdown | html | json (default: markdown)')
   .option('--model <model>', 'LLM model to use')
-  .option('--provider <provider>', 'LLM provider: groq | ollama', 'groq')
-  .option('--concurrency <n>', 'Concurrent LLM requests (1-10)', '3')
+  .option('--provider <provider>', 'LLM provider: openrouter | groq | gemini | kimi | ollama (default: openrouter)')
+  .option('--concurrency <n>', 'Concurrent LLM requests 1-10 (default: 3)')
   .option('--dry-run', 'Run AST parsing only, no LLM calls')
   .option('--incremental', 'Only re-analyze changed files')
-  .option('--no-confirm', 'Skip cost confirmation prompt')  
+  .option('--no-confirm', 'Skip cost confirmation prompt')
   .option('--json-summary', 'Output machine-readable JSON summary')
-  .option('--max-file-size <kb>', 'Skip files larger than this size in KB', '500')
+  .option('--max-file-size <kb>', 'Skip files larger than this size in KB (default: 500)')
   .action(analyzeCmd);
 
 // init command

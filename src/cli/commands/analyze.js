@@ -144,12 +144,12 @@ module.exports = async function analyzeCommand(target, flags) {
     provider = createProvider(config);
   } catch (e) {
     if (e.code === 'NO_API_KEY') {
-      const providerName = (config.provider || 'groq').toLowerCase();
+      const providerName = (config.provider || 'openrouter').toLowerCase();
       const isGroq = providerName === 'groq';
       const isGemini = providerName === 'gemini';
       const isKimi = providerName === 'kimi';
       const isOpenRouter = providerName === 'openrouter';
-      const label = isKimi ? 'Kimi (Moonshot)' : isGemini ? 'Google Gemini' : isOpenRouter ? 'OpenRouter' : 'Groq';
+      const label = isKimi ? 'Kimi (Moonshot)' : isGemini ? 'Google Gemini' : isGroq ? 'Groq' : 'OpenRouter';
       console.error(pc.red(`\n  No API key found for ${label}.\n`));
       console.error('  To fix, choose one of:\n');
       if (isKimi) {
@@ -171,12 +171,12 @@ module.exports = async function analyzeCommand(target, flags) {
         console.error('       export OPENROUTER_API_KEY=your_key_here\n');
         console.error('  Get a free OpenRouter key at: https://openrouter.ai/keys\n');
       } else {
-        // Default: Groq
+        // Default: OpenRouter
         console.error(pc.cyan('  1. Run the setup wizard:'));
         console.error('       legacyver init\n');
         console.error(pc.cyan('  2. Set an environment variable:'));
-        console.error('       export GROQ_API_KEY=your_key_here\n');
-        console.error('  Get a free Groq key at: https://console.groq.com/keys\n');
+        console.error('       export OPENROUTER_API_KEY=your_key_here\n');
+        console.error('  Get a free OpenRouter key at: https://openrouter.ai/keys\n');
         console.error(pc.cyan('  3. Use Google Gemini instead (free, 15 req/min):'));
         console.error('       legacyver analyze --provider gemini\n');
         console.error(pc.cyan('  4. Use Kimi (Moonshot) instead (free credits):'));
