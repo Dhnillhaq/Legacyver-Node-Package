@@ -43,3 +43,6 @@ temp/
 # Misc
 .sass-cache/
 .vagrant/
+
+# Analyzer output
+legacyver-docs/
