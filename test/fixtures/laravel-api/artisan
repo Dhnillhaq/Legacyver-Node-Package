@@ -1,5 +1,0 @@
-#!/usr/bin/env php
-<?php
-// Laravel artisan CLI stub (fixture only)
-define('LARAVEL_START', microtime(true));
-require __DIR__.'/vendor/autoload.php';
