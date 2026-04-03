@@ -24,8 +24,8 @@ module.exports = async function initCommand() {
     }
   }
 
-  const providerRaw = await ask(rl, `LLM provider [openrouter/groq/gemini/kimi/ollama] (default: openrouter): `);
-  const providerChoice = providerRaw.trim() || 'openrouter';
+  const providerRaw = await ask(rl, `LLM provider [groq/openrouter/gemini/kimi/ollama] (default: groq): `);
+  const providerChoice = providerRaw.trim() || 'groq';
   const isOllama = providerChoice === 'ollama';
   const isGroq = providerChoice === 'groq';
   const isGemini = providerChoice === 'gemini';
@@ -34,7 +34,7 @@ module.exports = async function initCommand() {
   const defaultModel = isOllama
     ? 'llama3.2'
     : isGroq
-      ? 'llama-3.3-70b-versatile'
+      ? 'openai/gpt-oss-120b'
       : isGemini
         ? 'gemini-2.0-flash'
         : isKimi
@@ -75,6 +75,35 @@ module.exports = async function initCommand() {
   writeFileSync(rcPath, JSON.stringify(config, null, 2), 'utf8');
   console.log(pc.green('\n✓ Created .legacyverrc'));
 
+  // If user left key blank, show how to set env var (cross-platform)
+  if (!isOllama && !apiKey.trim()) {
+    const isWin = process.platform === 'win32';
+    const envVarMap = {
+      groq:       { varName: 'GROQ_API_KEY',       url: 'https://console.groq.com/keys' },
+      openrouter: { varName: 'OPENROUTER_API_KEY', url: 'https://openrouter.ai/keys' },
+      gemini:     { varName: 'GEMINI_API_KEY',      url: 'https://aistudio.google.com/apikey' },
+      kimi:       { varName: 'MOONSHOT_API_KEY',    url: 'https://platform.moonshot.cn/console/api-keys' },
+    };
+    const envInfo = envVarMap[providerChoice] || envVarMap['openrouter'];
+
+    console.log('');
+    if (isGroq) {
+      console.log(pc.dim('i  No key entered — using built-in Groq key (openai/gpt-oss-120b).'));
+      console.log(pc.dim('   For higher rate limits, set your own key:'));
+    } else {
+      console.log(pc.yellow(`!  No API key saved. Set ${envInfo.varName} before running analyze.`));
+      console.log(pc.dim(`   Get a key: ${envInfo.url}`));
+    }
+    console.log('');
+    if (isWin) {
+      console.log(pc.dim(`   PowerShell:  $env:${envInfo.varName} = "your_key"`));
+      console.log(pc.dim(`   CMD:         set ${envInfo.varName}=your_key`));
+    } else {
+      console.log(pc.dim(`   Mac/Linux:   export ${envInfo.varName}=your_key`));
+    }
+    console.log(pc.dim('   Or re-run:   legacyver init  (enter the key when prompted)'));
+  }
+
   const exampleCmd = isOllama
     ? 'legacyver analyze --provider ollama'
     : isGroq
@@ -83,6 +112,7 @@ module.exports = async function initCommand() {
         ? 'legacyver analyze --provider gemini'
         : isKimi
           ? 'legacyver analyze --provider kimi'
-          : 'legacyver analyze'; // openrouter is the default, no flag needed
+          : 'legacyver analyze';
   console.log(pc.cyan(`\nRun \`${exampleCmd}\` to generate documentation.`));
 };
+

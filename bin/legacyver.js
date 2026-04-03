@@ -21,7 +21,7 @@ program
   .option('--out <dir>', 'Output directory (default: ./legacyver-docs)')
   .option('--format <fmt>', 'Output format: markdown | html | json (default: markdown)')
   .option('--model <model>', 'LLM model to use')
-  .option('--provider <provider>', 'LLM provider: openrouter | groq | gemini | kimi | ollama (default: openrouter)')
+  .option('--provider <provider>', 'LLM provider: groq | openrouter | gemini | kimi | ollama (default: groq)')
   .option('--concurrency <n>', 'Concurrent LLM requests 1-10 (default: 3)')
   .option('--dry-run', 'Run AST parsing only, no LLM calls')
   .option('--incremental', 'Only re-analyze changed files')

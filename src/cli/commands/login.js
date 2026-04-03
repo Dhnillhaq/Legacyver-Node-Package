@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const pc = require('picocolors');
 const { saveSession, loadSession } = require('../../utils/config');
 
-const WEB_URL = 'https://weci-holic.hackathon.sev-2.com';
+const WEB_URL = 'https://legac.vercel.app';
 
 /**
  * Open a URL in the default browser (cross-platform).

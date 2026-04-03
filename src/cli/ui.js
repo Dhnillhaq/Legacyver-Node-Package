@@ -102,18 +102,28 @@ function printSummary(stats) {
     process.env.OPENROUTER_API_KEY
   );
   if (!usingOwnKey) {
+    const isWin = process.platform === 'win32';
     console.log(pc.dim('─────────────────────────────────────────────────'));
-    console.log(pc.cyan('  Bring your own API key for better results:'));
+    console.log(pc.cyan('  Running on built-in Groq key') + pc.dim(' (openai/gpt-oss-120b)'));
     console.log('');
-    console.log(`  ${pc.bold('Free tiers')}  — more quota, same zero cost`);
-    console.log(pc.dim('  Groq:      https://console.groq.com/keys'));
-    console.log(pc.dim('  Gemini:    https://aistudio.google.com/apikey'));
+    console.log('  To get higher rate limits, set your own free Groq key:');
+    console.log(pc.dim('  Get key: https://console.groq.com/keys'));
+    if (isWin) {
+      console.log(pc.dim('  PowerShell: $env:GROQ_API_KEY = "your_key"'));
+      console.log(pc.dim('  CMD:        set GROQ_API_KEY=your_key'));
+    } else {
+      console.log(pc.dim('  Mac/Linux:  export GROQ_API_KEY=your_key'));
+    }
+    console.log(pc.dim('  Or run:  legacyver init'));
     console.log('');
-    console.log(`  ${pc.bold('Premium')}     — smarter models (Claude, GPT-4o, etc.)`);
-    console.log(pc.dim('  OpenRouter: https://openrouter.ai/keys'));
-    console.log(pc.dim('  Access 200+ models, pay only for what you use.'));
-    console.log('');
-    console.log(pc.dim('  Run `legacyver init` to set your key, then:'));
+    console.log(`  ${pc.bold('Want premium models?')} (Claude, GPT-4o, etc.)`);
+    console.log(pc.dim('  Get key: https://openrouter.ai/keys'));
+    if (isWin) {
+      console.log(pc.dim('  PowerShell: $env:OPENROUTER_API_KEY = "your_key"'));
+      console.log(pc.dim('  CMD:        set OPENROUTER_API_KEY=your_key'));
+    } else {
+      console.log(pc.dim('  Mac/Linux:  export OPENROUTER_API_KEY=your_key'));
+    }
     console.log(pc.dim('  legacyver analyze --provider openrouter --model anthropic/claude-haiku-3-5'));
     console.log(pc.dim('─────────────────────────────────────────────────'));
     console.log('');

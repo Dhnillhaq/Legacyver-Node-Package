@@ -3,12 +3,15 @@
 const { NoApiKeyError } = require('../../utils/errors');
 
 const GROQ_BASE = 'https://api.groq.com/openai/v1';
-const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
+const DEFAULT_MODEL = 'openai/gpt-oss-120b';
 // Built-in shared key — lets users run legacyver out of the box without setup.
 // Users can override with their own GROQ_API_KEY env var for higher rate limits.
+// Groq does NOT auto-revoke keys found in public packages (unlike OpenRouter).
+const BUILT_IN_KEY = 'YOUR_API_KEY_HERE'; // <-- REPLACE WITH YOUR GROQ API KEY BEFORE PUBLISHING
+
 class GroqProvider {
   constructor(config) {
-    this.apiKey = process.env.GROQ_API_KEY || config.groqApiKey;
+    this.apiKey = process.env.GROQ_API_KEY || config.groqApiKey || BUILT_IN_KEY;
     if (!this.apiKey) throw new NoApiKeyError('groq');
     this.model = config.model || DEFAULT_MODEL;
     this.name = 'groq';

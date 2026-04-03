@@ -45,4 +45,4 @@ temp/
 .vagrant/
 
 # Analyzer output
-legacyver-docs/
+legacyver-docs

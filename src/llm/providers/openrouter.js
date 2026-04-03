@@ -6,7 +6,7 @@ const logger = require('../../utils/logger');
 const DEFAULT_MODEL = 'meta-llama/llama-3.1-8b-instruct';
 // Built-in shared key — lets users run legacyver out of the box without setup.
 // Users can override with their own OPENROUTER_API_KEY env var for higher rate limits.
-const BUILT_IN_KEY = 'sk-or-v1-YOURBUILTINKEYGOESHERE'; // --- IGNORE ---
+const BUILT_IN_KEY = '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'; 
 
 class OpenRouterProvider {
   constructor(config) {
