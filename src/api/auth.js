@@ -1,69 +1,56 @@
 'use strict';
 
 const crypto = require('crypto');
-const { Pool } = require('pg');
-const dbConfig = require('../db/config');
+const { supabase, createDbClient } = require('../db/config');
 
 /**
  * Validate a CLI session token against app.user_sessions.
  * Returns user info if valid, null if expired/revoked/not found.
  *
  * @param {string} token  raw token from ~/.legacyver/session.json
- * @param {object} [opts]          optional overrides for testing
- * @param {object} [opts.pool]     pg Pool instance
  * @returns {Promise<{userId: string, username: string, email: string} | null>}
  */
-async function validateToken(token, opts) {
+async function validateToken(token) {
   if (!token) return null;
 
-  const ownPool = !(opts && opts.pool);
-  const pool = (opts && opts.pool) || new Pool(dbConfig);
-  try {
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  const client = createDbClient(token); // Use token to bypass RLS
 
-    const result = await pool.query(
-      `SELECT s.user_id, u.username, u.email
-       FROM app.user_sessions s
-       JOIN app.users u ON u.id = s.user_id
-       WHERE s.token_hash = $1
-         AND s.expires_at > NOW()
-         AND s.revoked_at IS NULL`,
-      [tokenHash]
-    );
+  const { data, error } = await client
+    .schema('public')
+    .from('user_sessions')
+    .select('user_id, users!inner(username, email)')
+    .eq('token_hash', tokenHash)
+    .gt('expires_at', new Date().toISOString())
+    .is('revoked_at', null)
+    .maybeSingle();
 
-    if (result.rows.length === 0) return null;
+  if (error || !data) return null;
 
-    const row = result.rows[0];
-    return {
-      userId: String(row.user_id),
-      username: row.username || 'unknown',
-      email: row.email || '',
-    };
-  } finally {
-    if (ownPool) await pool.end().catch(() => {});
-  }
+  return {
+    userId: String(data.user_id),
+    username: data.users?.username || 'unknown',
+    email: data.users?.email || '',
+  };
 }
 
 /**
  * Revoke a CLI session token (logout).
  * @param {string} token  raw token
- * @param {object} [opts]          optional overrides for testing
- * @param {object} [opts.pool]     pg Pool instance
  */
-async function revokeToken(token, opts) {
+async function revokeToken(token) {
   if (!token) return;
 
-  const ownPool = !(opts && opts.pool);
-  const pool = (opts && opts.pool) || new Pool(dbConfig);
-  try {
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    await pool.query(
-      'UPDATE app.user_sessions SET revoked_at = NOW() WHERE token_hash = $1',
-      [tokenHash]
-    );
-  } finally {
-    if (ownPool) await pool.end().catch(() => {});
-  }
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  const client = createDbClient(token);
+
+  const { error } = await client
+    .schema('public')
+    .from('user_sessions')
+    .update({ revoked_at: new Date().toISOString() })
+    .eq('token_hash', tokenHash);
+
+  if (error) throw error;
 }
 
 module.exports = { validateToken, revokeToken };

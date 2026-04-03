@@ -1,114 +1,103 @@
 'use strict';
 
-const { Pool } = require('pg');
 const path = require('path');
-const dbConfig = require('./config');
+const { createDbClient } = require('./config');
 const { loadSession } = require('../utils/config');
 const { validateToken } = require('../api/auth');
 const logger = require('../utils/logger');
 
-let _pool = null;
-
-/**
- * Lazy singleton pool — created on first use, ended after push.
- */
-function getPool() {
-  if (!_pool) {
-    _pool = new Pool(dbConfig);
-  }
-  return _pool;
-}
-
 /**
  * Find or create a repository for the given user + project path.
- * @param {Pool} pool
  * @param {string} userId  app.users.id (BIGINT as string)
  * @param {string} projectPath  absolute path of the analyzed directory
  * @returns {Promise<string>} repository id (UUID)
  */
-async function getOrCreateRepo(pool, userId, projectPath) {
+async function getOrCreateRepo(supabase, userId, projectPath) {
   const name = path.basename(projectPath);
   const fullName = projectPath;
 
   // Try find existing
-  const existing = await pool.query(
-    'SELECT id FROM app.repositories WHERE user_id = $1 AND full_name = $2',
-    [userId, fullName]
-  );
-  if (existing.rows.length > 0) {
-    return existing.rows[0].id;
-  }
+  const { data: existing, error: findErr } = await supabase
+    .schema('public')
+    .from('repositories')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('full_name', fullName)
+    .maybeSingle();
+
+  if (findErr) throw findErr;
+  if (existing) return existing.id;
 
   // Insert new
-  const inserted = await pool.query(
-    'INSERT INTO app.repositories (user_id, name, full_name) VALUES ($1, $2, $3) RETURNING id',
-    [userId, name, fullName]
-  );
-  return inserted.rows[0].id;
+  const { data: inserted, error: insertErr } = await supabase
+    .schema('public')
+    .from('repositories')
+    .insert({ user_id: userId, name, full_name: fullName })
+    .select('id')
+    .single();
+
+  if (insertErr) throw insertErr;
+  return inserted.id;
 }
 
 /**
  * Find or create a documentation record for a repository.
  * One documentation per repository (title = repo name).
- * @param {Pool} pool
  * @param {string} repositoryId  UUID
  * @param {string} repoName
  * @returns {Promise<string>} documentation id (UUID)
  */
-async function getOrCreateDocumentation(pool, repositoryId, repoName) {
-  const existing = await pool.query(
-    'SELECT id FROM app.documentations WHERE repository_id = $1',
-    [repositoryId]
-  );
-  if (existing.rows.length > 0) {
-    return existing.rows[0].id;
-  }
+async function getOrCreateDocumentation(supabase, repositoryId, repoName) {
+  const { data: existing, error: findErr } = await supabase
+    .schema('public')
+    .from('documentations')
+    .select('id')
+    .eq('repository_id', repositoryId)
+    .maybeSingle();
 
-  const inserted = await pool.query(
-    'INSERT INTO app.documentations (repository_id, title, description) VALUES ($1, $2, $3) RETURNING id',
-    [repositoryId, `${repoName} Documentation`, `Auto-generated documentation for ${repoName}`]
-  );
-  return inserted.rows[0].id;
+  if (findErr) throw findErr;
+  if (existing) return existing.id;
+
+  const { data: inserted, error: insertErr } = await supabase
+    .schema('public')
+    .from('documentations')
+    .insert({
+      repository_id: repositoryId,
+      title: `${repoName} Documentation`,
+      description: `Auto-generated documentation for ${repoName}`,
+    })
+    .select('id')
+    .single();
+
+  if (insertErr) throw insertErr;
+  return inserted.id;
 }
 
 /**
  * Upsert documentation pages.
  * Each fragment becomes a page; slug = file path, title = file name.
  * Uses (documentation_id, slug) as the logical unique key.
- * @param {Pool} pool
  * @param {string} documentationId  UUID
  * @param {Array<{relativePath: string, content: string}>} fragments
  * @returns {Promise<number>} count of upserted pages
  */
-async function upsertPages(pool, documentationId, fragments) {
-  let count = 0;
-  for (let i = 0; i < fragments.length; i++) {
-    const frag = fragments[i];
-    const slug = frag.relativePath.replace(/\\/g, '/');
-    const title = path.basename(frag.relativePath);
+async function upsertPages(supabase, documentationId, fragments) {
+  const rows = fragments.map((frag, i) => ({
+    documentation_id: documentationId,
+    slug: frag.relativePath.replace(/\\/g, '/'),
+    title: path.basename(frag.relativePath),
+    content: frag.content,
+    page_order: i + 1,
+    created_at: new Date().toISOString(),
+  }));
 
-    // Check if page exists
-    const existing = await pool.query(
-      'SELECT id FROM app.documentation_pages WHERE documentation_id = $1 AND slug = $2',
-      [documentationId, slug]
-    );
+  const { error } = await supabase
+    .schema('public')
+    .from('documentation_pages')
+    .upsert(rows, { onConflict: 'documentation_id,slug' });
 
-    if (existing.rows.length > 0) {
-      // Update existing
-      await pool.query(
-        'UPDATE app.documentation_pages SET content = $1, title = $2, page_order = $3, created_at = NOW() WHERE id = $4',
-        [frag.content, title, i + 1, existing.rows[0].id]
-      );
-    } else {
-      // Insert new
-      await pool.query(
-        'INSERT INTO app.documentation_pages (documentation_id, slug, title, content, page_order) VALUES ($1, $2, $3, $4, $5)',
-        [documentationId, slug, title, frag.content, i + 1]
-      );
-    }
-    count++;
-  }
-  return count;
+  if (error) throw error;
+  return rows.length;
 }
 
 /**
@@ -118,7 +107,6 @@ async function upsertPages(pool, documentationId, fragments) {
  * @param {Array<{relativePath: string, content: string}>} fragments
  * @param {string} projectPath  absolute path of the analyzed directory
  * @param {object} [opts]          optional overrides for testing
- * @param {object} [opts.pool]     pg Pool instance (skips singleton pool)
  * @param {object} [opts.session]  session object (skips loadSession)
  * @param {object} [opts.user]     user object (skips validateToken) — { userId, username, email }
  * @returns {Promise<{skipped: boolean, pushed?: number}>}
@@ -138,20 +126,13 @@ async function pushToDatabase(fragments, projectPath, opts) {
     }
   }
 
-  const ownPool = !(opts && opts.pool);
-  const pool = (opts && opts.pool) || getPool();
-  try {
-    const repoName = path.basename(projectPath);
-    const repoId = await getOrCreateRepo(pool, user.userId, projectPath);
-    const docId = await getOrCreateDocumentation(pool, repoId, repoName);
-    const pushed = await upsertPages(pool, docId, fragments);
-    return { skipped: false, pushed };
-  } finally {
-    if (ownPool) {
-      await pool.end().catch(() => {});
-      _pool = null;
-    }
-  }
+  const supabase = createDbClient(session.token);
+
+  const repoName = path.basename(projectPath);
+  const repoId = await getOrCreateRepo(supabase, user.userId, projectPath);
+  const docId = await getOrCreateDocumentation(supabase, repoId, repoName);
+  const pushed = await upsertPages(supabase, docId, fragments);
+  return { skipped: false, pushed };
 }
 
-module.exports = { getPool, getOrCreateRepo, getOrCreateDocumentation, upsertPages, pushToDatabase };
+module.exports = { getOrCreateRepo, getOrCreateDocumentation, upsertPages, pushToDatabase };

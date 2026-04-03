@@ -217,7 +217,23 @@ module.exports = async function analyzeCommand(target, flags) {
 
   // Merge cached fragments
   const allFragments = [...docFragments];
-  // (cached fragments would be loaded here)
+  if (config.incremental && cacheHits.length > 0) {
+    const fs = require('fs');
+    for (const hit of cacheHits) {
+      const cachedInfo = cacheMap[hit.relativePath];
+      if (cachedInfo && cachedInfo.docFile) {
+        try {
+          const content = fs.readFileSync(cachedInfo.docFile, 'utf8');
+          allFragments.push({
+            ...hit,
+            content
+          });
+        } catch (e) {
+          logger.warn(`Failed to read cached file for ${hit.relativePath}`);
+        }
+      }
+    }
+  }
 
   // ─── Stage 4: Renderer ───────────────────────────────────────────────────
   const renderSpinner = createSpinner('Rendering output...');
@@ -268,8 +284,11 @@ module.exports = async function analyzeCommand(target, flags) {
 
     if (!cloudResult.skipped) {
       syncSpinner.succeed(`Docs synced to cloud (${cloudResult.pushed} files)`);
+    } else if (session.token) {
+      syncSpinner.stop(); // Stops spinner gracefully if skipped without error
     }
   } catch (syncErr) {
+    if (typeof syncSpinner !== 'undefined') syncSpinner.fail('Cloud sync failed');
     logger.warn('Cloud sync failed: ' + syncErr.message);
   }
 
