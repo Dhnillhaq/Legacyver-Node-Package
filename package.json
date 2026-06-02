@@ -1,8 +1,16 @@
 {
   "name": "legacyver",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "AI-powered CLI tool to auto-generate technical documentation from legacy/undocumented codebases",
   "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dhnillhaq/Legacyver-Node-Package.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Dhnillhaq/Legacyver-Node-Package/issues"
+  },
+  "homepage": "https://github.com/Dhnillhaq/Legacyver-Node-Package#readme",
   "bin": {
     "legacyver": "bin/legacyver.js"
   },
