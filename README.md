@@ -1,5 +1,8 @@
 # 🚀 Legacyver
 
+🌐 Website: https://legac.vercel.app<br>
+📚 Docs: https://legac.vercel.app/docs
+
 **AI-powered CLI tool** untuk generate dokumentasi teknis secara otomatis dari codebase yang sudah ada (legacy) atau tidak memiliki dokumentasi. Menggunakan parsing AST yang mendalam dikombinasikan dengan LLM (Groq, Gemini, Ollama, dll.) untuk menjelaskan struktur, logika, dan pola kode kamu.
 
 ---
